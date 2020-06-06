@@ -113,10 +113,18 @@ class BalconyContent {
     this.videoSource = this.audioCtx.createMediaElementSource(this.video);
     this.audioSource = this.audioCtx.createMediaElementSource(this.audio);
 
-    this.autoDuckNode = new AudioWorkletNode(this.audioCtx, "autoduck-processor");
+    this.autoDuckNode = new AudioWorkletNode(this.audioCtx, "autoduck-processor", {
+      numberOfInputs: 2,
+      numberOfOutputs: 2,
+      outputChannelCount: [2, 2],
+    });
     this.videoSource.connect(this.autoDuckNode, 0, 0);
     this.audioSource.connect(this.autoDuckNode, 0, 1);
-    this.autoDuckNode.connect(this.audioCtx.destination);
+
+    //this.merger = this.audioCtx.createChannelMerger(2);
+    this.autoDuckNode.connect(this.audioCtx.destination, 0, 0);
+    this.autoDuckNode.connect(this.audioCtx.destination, 1, 0);
+    // this.merger.connect(this.audioCtx.destination);
   }
 
   resyncVideoAndAudio() {
