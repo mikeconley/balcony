@@ -16,5 +16,5 @@
   "permissions": [
     "<all_urls>"
   ],
-  "web_accessible_resources": ["content/autoduck-processor.js"]
+  "web_accessible_resources": ["content/commentary-processor.js"]
 }
