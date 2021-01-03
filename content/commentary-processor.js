@@ -2,23 +2,28 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
- "use strict";
+"use strict";
 
-const CUTBACK_RATIO = 0.7;
+/**
+ * This is a quick and dirty autoducker. It takes two inputs - the original
+ * audio track for a video, and a commentary track. It feeds those inputs
+ * back to the outputs, but cuts back the original audio track by
+ * CUTBACK_RATIO if sufficient signal has been detected on the commentary
+ * track.
+ */
+
+const CUTBACK_RATIO = 0.2;
 const THRESHOLD = 0.01;
 const MAX_CONSECUTIVE_BELOW_THRESHOLDS = 500;
+
 const STATE_NORMAL = 0;
 const STATE_DUCK = 1;
 
 let gConsecutiveBelowThresholds = 0;
 let gState = STATE_NORMAL;
 
-let logBumper = 0;
-
 class CommentaryProcessor extends AudioWorkletProcessor {
   process(inputs, outputs, parameters) {
-    logBumper++;
-
     let originalInputChannels = inputs[0];
     let originalOutputChannels = outputs[0];
 
@@ -28,11 +33,28 @@ class CommentaryProcessor extends AudioWorkletProcessor {
     let belowThreshold = true;
     let isMono = commentaryInputChannels.length <= 1;
 
+    // An AudioWorkletProcessor only receives a small set of samples
+    // per call to process, which isn't enough to determine whether or
+    // not sufficient "silence" has passed to enter STATE_NORMAL. We instead
+    // keep track of how many consecutive process calls result in no samples
+    // being over THRESHOLD. If we've seen MAX_CONSECUTIVE_BELOW_THRESHOLDS
+    // consecutive process calls with no samples over the threshold, then we
+    // enter STATE_NORMAL. Otherwise, we enter STATE_DUCK.
+ 
     if (commentaryInputChannels.length) {
-      for (let channel = 0; channel < commentaryOutputChannels.length; ++channel) {
-        for (let sampleIndex = 0; sampleIndex < commentaryOutputChannels[channel].length; ++sampleIndex) {
-          let sample = isMono ? commentaryInputChannels[0][sampleIndex]
-                              : commentaryInputChannels[channel][sampleIndex];
+      for (
+        let channel = 0;
+        channel < commentaryOutputChannels.length;
+        ++channel
+      ) {
+        for (
+          let sampleIndex = 0;
+          sampleIndex < commentaryOutputChannels[channel].length;
+          ++sampleIndex
+        ) {
+          let sample = isMono
+            ? commentaryInputChannels[0][sampleIndex]
+            : commentaryInputChannels[channel][sampleIndex];
           if (Math.abs(sample) > THRESHOLD) {
             belowThreshold = false;
           }
@@ -61,12 +83,8 @@ class CommentaryProcessor extends AudioWorkletProcessor {
       let originalOutputChannel = originalOutputChannels[i];
 
       for (let j = 0; j < originalInputChannel.length; ++j) {
-
-        if (gState == STATE_DUCK) {
-          originalOutputChannel[j] = originalInputChannel[j] * 0.2;
-        } else {
-          originalOutputChannel[j] = originalInputChannel[j];
-        }
+        let ratio = (gState == STATE_DUCK) ? CUTBACK_RATIO : 1.0;
+        originalOutputChannel[j] = originalInputChannel[j] * ratio;
       }
     }
 
@@ -74,4 +92,4 @@ class CommentaryProcessor extends AudioWorkletProcessor {
   }
 }
 
-registerProcessor("commentary-processor", CommentaryProcessor)
+registerProcessor("commentary-processor", CommentaryProcessor);
