@@ -121,10 +121,8 @@ class BalconyContent {
     this.videoSource.connect(this.commentaryNode, 0, 0);
     this.audioSource.connect(this.commentaryNode, 0, 1);
 
-    //this.merger = this.audioCtx.createChannelMerger(2);
     this.commentaryNode.connect(this.audioCtx.destination, 0, 0);
     this.commentaryNode.connect(this.audioCtx.destination, 1, 0);
-    // this.merger.connect(this.audioCtx.destination);
   }
 
   resyncVideoAndAudio() {
@@ -143,4 +141,3 @@ class BalconyContent {
     return VIDEO_EVENTS;
   }
 };
-

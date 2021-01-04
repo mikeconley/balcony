@@ -14,7 +14,21 @@
     }
   },
   "permissions": [
-    "<all_urls>"
+    "<all_urls>",
+    "alarms",
+    "tabs",
+    "storage"
   ],
-  "web_accessible_resources": ["content/commentary-processor.js"]
+  "web_accessible_resources": ["content/commentary-processor.js"],
+  "background": {
+    "scripts": [
+      "constants.js",
+      "background.js"
+    ]
+  },
+  "page_action": {
+    "browser_style": true,
+    "default_icon": "icons/balcony.svg",
+    "default_title": "Balcony"
+  }
 }

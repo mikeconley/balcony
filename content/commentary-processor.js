@@ -40,7 +40,6 @@ class CommentaryProcessor extends AudioWorkletProcessor {
     // being over THRESHOLD. If we've seen MAX_CONSECUTIVE_BELOW_THRESHOLDS
     // consecutive process calls with no samples over the threshold, then we
     // enter STATE_NORMAL. Otherwise, we enter STATE_DUCK.
- 
     if (commentaryInputChannels.length) {
       for (
         let channel = 0;
